@@ -7,10 +7,12 @@ package com.mockaroo;
  */
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -46,7 +48,6 @@ public class MockarooDataValidation {
 			e.printStackTrace();
 			return false;
 		}
-
 		return true;
 	}
 
@@ -130,11 +131,12 @@ public class MockarooDataValidation {
 		FileReader fr = new FileReader("/Users/kaan/Downloads/MOCK_DATA.csv");
 		BufferedReader br = new BufferedReader(fr);
 		String line = "";
-		int count = 0;
 		while ((line = br.readLine()) != null) {
 			countries.add(line);
-			count++;
 		}
+		br.close();
+		fr.close();
+		deleteFile();
 
 		// 18. Assert that first row is matching with Field names that we selected.
 
@@ -143,9 +145,11 @@ public class MockarooDataValidation {
 
 		Assert.assertTrue((arr[0] + " " + arr[1]).equals("City Country"));
 
+		countries.remove(0);
+
 		// 19. Assert that there are 1000 records
 
-		Assert.assertTrue(count == 1001);
+		Assert.assertTrue(countries.size() == 1000);
 
 		// 20. Add all countries to Countries ArrayList
 
@@ -164,27 +168,20 @@ public class MockarooDataValidation {
 		}
 
 		// 22. Sort all cities and find the city with the longest name and shortest name
-
-		Collections.sort(citiesList);
-		Collections.sort(countriesList);
-		int MAX = 0;
-		String longCity = "";
-		for (int i = 0; i < citiesList.size(); i++) {
-			if (citiesList.get(i).length() > MAX) {
-				MAX = citiesList.get(i).length();
-				longCity = citiesList.get(i);
+		Collections.sort(citiesList, new Comparator<String>() {
+			@Override
+			public int compare(String s1, String s2) {
+				return s1.length() - s2.length();
 			}
-		}
+		});
+		System.out.println();
+		String longCity = citiesList.get(citiesList.size() - 1);
+		int MAX = longCity.length();
+
+		String shortCity = citiesList.get(0);
+		int MIN = shortCity.length();
+
 		System.out.println("Long city name length: " + longCity + "  " + MAX);
-
-		int MIN = MAX;
-		String shortCity = "";
-		for (int i = 0; i < citiesList.size(); i++) {
-			if (citiesList.get(i).length() < MIN) {
-				MIN = citiesList.get(i).length();
-				shortCity = citiesList.get(i);
-			}
-		}
 		System.out.println("Short city name length: " + shortCity + " " + MIN);
 
 		// 23. In Countries ArrayList, find how many times each Country is mentioned.
@@ -231,7 +228,17 @@ public class MockarooDataValidation {
 		Assert.assertEquals(uniqueCountries.size(), countrySet.size());
 		System.out.println("uniqueCountries number : " + uniqueCountries.size());
 		System.out.println("Countries number: " + countrySet.size());
+	}
 
+	public void deleteFile() {
+
+		File file = new File("/Users/kaan/Downloads/MOCK_DATA.csv");
+
+		if (file.delete()) {
+			System.out.println(file.getName() + " is deleted!");
+		} else {
+			System.out.println("Delete operation is failed.");
+		}
 	}
 
 	@AfterClass
